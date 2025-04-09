@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      padding: 30px;
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+    }
+    h1 {
+      color: #2575fc;
+      margin-bottom: 20px;
+    }
+    .booking-info {
+      text-align: left;
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #f5f5f5;
+      border-radius: 8px;
+    }
+    .booking-info p {
+      margin: 5px 0;
+      font-size: 14px;
+    }
+    .payment-info {
+      font-size: 18px;
+      color: #555;
+      margin-bottom: 20px;
+    }
+    .payment-info span {
+      font-weight: bold;
+      color: #6a11cb;
+    }
+    .qr-container {
+      margin: 20px 0;
+    }
+    .qr-container img {
+      max-width: 200px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+    }
+    input, button {
+      width: calc(100% - 20px);
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      font-size: 16px;
+      border: 1px solid #ddd;
+    }
+    button {
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    button:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+    button:disabled {
+      background: #cccccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .status-message {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 5px;
+      display: none;
+    }
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+      display: block;
+    }
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Complete Your Payment</h1>
+    
+    <div class="booking-info">
+      <p><strong>Booking Reference:</strong> <span id="bookingId"></span></p>
+      <p><strong>Passenger:</strong> <span id="passengerName"></span></p>
+      <p><strong>Seats:</strong> <span id="seatNumbers"></span></p>
+      <p><strong>Bus:</strong> <span id="busName"></span></p>
+      <p><strong>Departure:</strong> <span id="departureDate"></span></p>
+      <p><strong>Route:</strong> <span id="route"></span></p>
+    </div>
+    
+    <div class="payment-info">
+      <p>Total Amount: <span id="totalPrice">₹0</span></p>
+      <p>UPI ID: <span id="upiId">9370681450@ptaxis</span></p>
+      <button onclick="copyUpiId()">Copy UPI ID</button>
+    </div>
+    
+    <div class="qr-container">
+      <p>Scan this QR code to pay:</p>
+      <img src="qr.jpg" alt="QR Code for UPI Payment">
+    </div>
+    
+    <input type="text" id="transactionId" placeholder="Enter Transaction ID" required>
+    <button id="confirmBtn" onclick="confirmPayment()">Confirm Payment</button>
+    
+    <div id="statusMessage" class="status-message"></div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Get data from URL parameters
+      const urlParams = new URLSearchParams(window.location.search);
+      const bookingId = urlParams.get('bookingId');
+      const passengerName = decodeURIComponent(urlParams.get('passengerName') || '');
+      const seatNumbers = decodeURIComponent(urlParams.get('seatNumbers') || '');
+      const totalPrice = parseFloat(urlParams.get('totalPrice') || 0);
+      const busName = decodeURIComponent(urlParams.get('busName') || '');
+      const departureDate = decodeURIComponent(urlParams.get('departureDate') || '');
+      const source = decodeURIComponent(urlParams.get('source') || '');
+      const destination = decodeURIComponent(urlParams.get('destination') || '');
+      
+      // Display booking info
+      if (bookingId) {
+        document.getElementById('bookingId').textContent = bookingId;
+        document.getElementById('passengerName').textContent = passengerName;
+        document.getElementById('seatNumbers').textContent = seatNumbers;
+        document.getElementById('totalPrice').textContent = `₹${totalPrice.toFixed(2)}`;
+        document.getElementById('busName').textContent = busName;
+        document.getElementById('departureDate').textContent = departureDate;
+        document.getElementById('route').textContent = `${source} to ${destination}`;
+      } else {
+        showError('No booking information found. Please start the booking process again.');
+        document.getElementById('confirmBtn').disabled = true;
+      }
+    });
+    
+    function copyUpiId() {
+      const upiId = document.getElementById('upiId').textContent;
+      navigator.clipboard.writeText(upiId)
+        .then(() => alert('UPI ID copied to clipboard!'))
+        .catch(err => showError('Failed to copy UPI ID. Please copy it manually.'));
+    }
+    
+    async function confirmPayment() {
+      const transactionId = document.getElementById('transactionId').value.trim();
+      const bookingId = document.getElementById('bookingId').textContent;
+      
+      if (!transactionId) {
+        showError('Please enter transaction ID');
+        return;
+      }
+      
+      if (!bookingId) {
+        showError('Invalid booking reference');
+        return;
+      }
+      
+      const btn = document.getElementById('confirmBtn');
+      btn.disabled = true;
+      btn.textContent = 'Processing...';
+      
+      try {
+        const response = await fetch(`payment.php?confirm_payment=1&transaction_id=${encodeURIComponent(transactionId)}&booking_id=${bookingId}`);
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+          showSuccess('Payment confirmed successfully! Redirecting to confirmation...');
+          setTimeout(() => {
+            window.location.href = `confirmation.html?bookingId=${bookingId}&txnId=${transactionId}`;
+          }, 2000);
+        } else {
+          showError(data.message || 'Payment confirmation failed');
+          btn.disabled = false;
+          btn.textContent = 'Confirm Payment';
+        }
+      } catch (error) {
+        showError('Payment confirmation failed. Please try again.');
+        btn.disabled = false;
+        btn.textContent = 'Confirm Payment';
+      }
+    }
+    
+    function showSuccess(message) {
+      const statusMessage = document.getElementById('statusMessage');
+      statusMessage.textContent = message;
+      statusMessage.className = 'status-message success';
+    }
+    
+    function showError(message) {
+      const statusMessage = document.getElementById('statusMessage');
+      statusMessage.textContent = message;
+      statusMessage.className = 'status-message error';
+    }
+  </script>
+</body>
+</html>

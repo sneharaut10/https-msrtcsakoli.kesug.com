@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 500px;
+            width: 100%;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 24px;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+        
+        .success-icon {
+            font-size: 60px;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+        
+        .booking-details {
+            text-align: left;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        .booking-details p {
+            margin: 10px 0;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon">✓</div>
+        <h1>Payment Successful!</h1>
+        <p>Your booking has been confirmed.</p>
+        
+        <div class="booking-details">
+            <p><strong>Bus:</strong> <span id="busName"></span></p>
+            <p><strong>Amount Paid:</strong> <span id="totalPrice"></span></p>
+            <p><strong>Booking ID:</strong> <span id="bookingId"></span></p>
+            <p><strong>Date:</strong> <span id="bookingDate"></span></p>
+        </div>
+        
+        <button class="btn" onclick="goToDashboard()">Go to Dashboard</button>
+    </div>
+
+    <script>
+        // Get query parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const busName = decodeURIComponent(urlParams.get('busName'));
+        const totalPrice = urlParams.get('totalPrice');
+
+        // Generate a random booking ID
+        const bookingId = 'BK' + Math.floor(Math.random() * 1000000);
+        const bookingDate = new Date().toLocaleDateString();
+
+        // Display booking details
+        document.getElementById('busName').textContent = busName;
+        document.getElementById('totalPrice').textContent = '₹' + totalPrice;
+        document.getElementById('bookingId').textContent = bookingId;
+        document.getElementById('bookingDate').textContent = bookingDate;
+
+        // Redirect to dashboard
+        function goToDashboard() {
+            window.location.href = 'admin_dashboard.html';
+        }
+    </script>
+</body>
+</html>

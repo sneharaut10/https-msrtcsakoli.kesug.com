@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Available Buses</title>
+  <style>
+    /* Your existing CSS styles */  body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      animation: gradientAnimation 10s ease infinite;
+    }
+
+    @keyframes gradientAnimation {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .container {
+      max-width: 800px;
+      width: 100%;
+      padding: 30px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      font-size: 28px;
+      color: #2575fc;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    h1 span {
+      color: #6a11cb;
+    }
+
+    .bus-list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .bus-card {
+      background: #f9f9f9;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: left;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .bus-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .bus-card h3 {
+      margin: 0;
+      font-size: 20px;
+      color: #2575fc;
+    }
+
+    .bus-card p {
+      margin: 5px 0;
+      color: #555;
+    }
+
+    .bus-card .price {
+      font-size: 18px;
+      font-weight: 600;
+      color: #6a11cb;
+    }
+
+    .view-seats-btn {
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .view-seats-btn:hover {
+      background: linear-gradient(135deg, #2575fc, #6a11cb);
+      transform: scale(1.05);
+    }
+    
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Available <span>Buses</span></h1>
+    <div class="bus-list" id="busList">
+      <!-- Bus cards will be dynamically inserted here -->
+    </div>
+  </div>
+
+  <script>
+    // Get query parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const source = urlParams.get('source');
+    const destination = urlParams.get('destination');
+    const departure = urlParams.get('departure');
+
+    // Fetch buses from the backend
+    fetch(`get_buses.php?source=${source}&destination=${destination}`)
+      .then(response => response.json())
+      .then(data => {
+        const busList = document.getElementById('busList');
+        busList.innerHTML = "";
+
+        data.forEach(bus => {
+          const busCard = document.createElement('div');
+          busCard.className = 'bus-card';
+
+          busCard.innerHTML = `
+            <h3>${bus.name}</h3>
+            <p><strong>Time:</strong> ${bus.departure_time}</p>
+            <p><strong>Male Price:</strong> <span class="price">₹${bus.male_price}</span></p>
+            <p><strong>Female Price:</strong> <span class="price">₹${bus.female_price}</span></p>
+            <p><strong>Source:</strong> ${bus.source}</p>
+            <p><strong>Destination:</strong> ${bus.destination}</p>
+            <p><strong>Departure Date:</strong> ${departure}</p>
+            <p><strong>Schedule:</strong> ${bus.schedule}</p>
+            <button class="view-seats-btn" onclick="viewSeats(${bus.id}, '${bus.name}', '${bus.male_price}', '${bus.female_price}')">View Seats</button>
+          `;
+          busList.appendChild(busCard);
+        });
+      })
+      .catch(error => console.error('Error fetching buses:', error));
+
+    // View seats function
+    function viewSeats(busId, busName, malePrice, femalePrice) {
+      const malePriceValue = parseFloat(malePrice);
+      const femalePriceValue = parseFloat(femalePrice);
+      window.location.href = `seat_selection.html?busId=${busId}&busName=${encodeURIComponent(busName)}&malePrice=${malePriceValue}&femalePrice=${femalePriceValue}`;
+    }
+  </script>
+</body>
+</html>
